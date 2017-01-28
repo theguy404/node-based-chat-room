@@ -2,26 +2,33 @@
 <html>
   <head>
     <title>Socket.IO chat</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
-    </style>
+    <link rel="stylesheet" href="http://35.161.43.167/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://35.161.43.167/css/chat.css">
   </head>
   <body>
-    <ul id="messages"></ul>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-3 offset-md-1 users">
+          <h1>Users Online</h1>
+          <ul id="users"></ul>
+        </div>
+        <div class="col-md-8 messages"><ul id="messages"></ul></div>
+      </div>
+    </div>
     <form action="">
       <input id="m" autocomplete="off" /><button>Send</button>
     </form>
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="http://35.161.43.167/js/bootstrap.min.js"></script>
     <script>
       var socket = io();
+      socket.on('connect', function(data){
+        nickname = prompt('What is your username?');
+
+        socket.emit('join', nickname);
+      });
+
       $('form').submit(function(){
         socket.emit('chat message', $('#m').val());
         $('#m').val('');
@@ -29,6 +36,18 @@
       });
       socket.on('chat message', function(msg){
         $('#messages').append($('<li>').text(msg));
+      });
+      socket.on('users', function(user){
+        if(user != null){
+          var users = $('<li data-name="'+user+'">'+user+'</li>');
+          $('#users').append(users);
+        }
+      });
+      socket.on('remove user', function(name){
+        $('#users li[data-name='+name+']').remove();
+      });
+      socket.on('reconnect', function() {
+        location.reload();
       });
     </script>
   </body>
